@@ -14,6 +14,7 @@
 #include <asm/processor.h>
 #include <linux/iopoll.h>
 
+#include <dt-bindings/power/mt7622-power.h>
 #include <dt-bindings/power/mt7623-power.h>
 #include <dt-bindings/power/mt7629-power.h>
 
@@ -52,6 +53,13 @@
 #define PWR_STATUS_HIF0		BIT(25)
 #define PWR_STATUS_HIF1		BIT(26)
 
+#define MT7622_TOP_AXI_PROT_EN_ETHSYS		(BIT(3) | BIT(17))
+#define MT7622_TOP_AXI_PROT_EN_HIF0		(BIT(24) | BIT(25))
+#define MT7622_TOP_AXI_PROT_EN_HIF1		(BIT(26) | BIT(27) | \
+						 BIT(28))
+#define MT7622_TOP_AXI_PROT_EN_WB		(BIT(2) | BIT(6) | \
+						 BIT(7) | BIT(8))
+
 /* Infrasys configuration */
 #define INFRA_TOPDCM_CTRL	0x10
 #define INFRA_TOPAXI_PROT_EN	0x220
@@ -60,6 +68,7 @@
 #define DCM_TOP_EN		BIT(0)
 
 enum scp_domain_type {
+	SCPSYS_MT7622,
 	SCPSYS_MT7623,
 	SCPSYS_MT7629,
 };
@@ -82,6 +91,38 @@ struct scp_domain {
 	struct scp_domain_data *data;
 };
 
+static struct scp_domain_data scp_domain_mt7622[] = {
+	[MT7622_POWER_DOMAIN_ETHSYS] = {
+		.sta_mask = PWR_STATUS_ETHSYS,
+		.ctl_offs = SPM_ETHSYS_PWR_CON,
+		.sram_pdn_bits = GENMASK(11, 8),
+		.sram_pdn_ack_bits = GENMASK(15, 12),
+		.bus_prot_mask = MT7622_TOP_AXI_PROT_EN_ETHSYS,
+	},
+	[MT7622_POWER_DOMAIN_HIF0] = {
+		.sta_mask = PWR_STATUS_HIF0,
+		.ctl_offs = SPM_HIF0_PWR_CON,
+		.sram_pdn_bits = GENMASK(11, 8),
+		.sram_pdn_ack_bits = GENMASK(15, 12),
+		.bus_prot_mask = MT7622_TOP_AXI_PROT_EN_HIF0,
+	},
+	[MT7622_POWER_DOMAIN_HIF1] = {
+		.sta_mask = PWR_STATUS_HIF1,
+		.ctl_offs = SPM_HIF1_PWR_CON,
+		.sram_pdn_bits = GENMASK(11, 8),
+		.sram_pdn_ack_bits = GENMASK(15, 12),
+		.bus_prot_mask = MT7622_TOP_AXI_PROT_EN_HIF1,
+	},
+#if 0
+	[MT7622_POWER_DOMAIN_WB] = {
+		.sta_mask = PWR_STATUS_WB,
+		.ctl_offs = SPM_WB_PWR_CON,
+		.sram_pdn_bits = 0,
+		.sram_pdn_ack_bits = 0,
+		.bus_prot_mask = MT7622_TOP_AXI_PROT_EN_WB,
+	},
+#endif
+};
 static struct scp_domain_data scp_domain_mt7623[] = {
 	[MT7623_POWER_DOMAIN_CONN] = {
 		.sta_mask = PWR_STATUS_CONN,
@@ -325,6 +366,9 @@ static int mtk_power_domain_hook(struct udevice *dev)
 	scpd->type = (enum scp_domain_type)dev_get_driver_data(dev);
 
 	switch (scpd->type) {
+	case SCPSYS_MT7622:
+		scpd->data = scp_domain_mt7622;
+		break;
 	case SCPSYS_MT7623:
 		scpd->data = scp_domain_mt7623;
 		break;
@@ -378,6 +422,10 @@ static int mtk_power_domain_probe(struct udevice *dev)
 }
 
 static const struct udevice_id mtk_power_domain_ids[] = {
+	{
+		.compatible = "mediatek,mt7622-scpsys",
+		.data = SCPSYS_MT7622,
+	},
 	{
 		.compatible = "mediatek,mt7623-scpsys",
 		.data = SCPSYS_MT7623,

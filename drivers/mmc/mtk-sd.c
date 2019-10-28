@@ -1271,7 +1271,7 @@ static void msdc_init_hw(struct msdc_host *host)
 
 static void msdc_ungate_clock(struct msdc_host *host)
 {
-#if 0
+#if 1
 	clk_enable(&host->src_clk);
 	clk_enable(&host->h_clk);
 	if (host->src_clk_cg.dev)
@@ -1290,7 +1290,7 @@ static int msdc_drv_probe(struct udevice *dev)
 
 	host->dev_comp = (struct msdc_compatible *)dev_get_driver_data(dev);
 
-#if 0
+#if 1
 	host->src_clk_freq = clk_get_rate(&host->src_clk);
 #else
 	host->src_clk_freq = 400000000;
@@ -1335,7 +1335,7 @@ static int msdc_ofdata_to_platdata(struct udevice *dev)
 	if (ret)
 		return ret;
 
-#if 0
+#if 1
 	ret = clk_get_by_name(dev, "source", &host->src_clk);
 	if (ret < 0)
 		return ret;

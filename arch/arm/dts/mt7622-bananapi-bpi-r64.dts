@@ -118,7 +118,15 @@
 	};
 
 };
+/*
+&pcie0_phy {
+	status = "okay";
+};
 
+&pcie1_phy {
+	status = "okay";
+};
+*/
 &pio {
 	/* 
 	 * TPM 2.0 ST33 RESET pin
@@ -233,14 +241,6 @@
 		mux {
 			function = "ir";
 			groups =  "ir_1_tx";
-		};
-	};
-
-	/* Parallel nand is shared pin with eMMC */
-	parallel_nand_pins: parallel-nand-pins {
-		mux {
-			function = "flash";
-			groups = "par_nand";
 		};
 	};
 
@@ -360,14 +360,6 @@
 		};
 	};
 
-	/* serial NAND is shared pin with SPI-NOR */
-	serial_nand_pins: serial-nand-pins {
-		mux {
-			function = "flash";
-			groups = "snfi";
-		};
-	};
-
 	uart0_pins: uart0-pins {
 		mux {
 			function = "uart";
@@ -406,6 +398,9 @@
 
 &eth {
 	status = "okay";
+	phy-mode = "sgmii"; //XXX
+	mediatek,switch = "mt7530"; //XXX
+	reset-gpios = <&pio 54 0>; //XXX 
 	gmac0: mac@0 {
                 compatible = "mediatek,eth-mac";
                 reg = <0>;
@@ -482,40 +477,39 @@
 };
 
 &mmc0 {
-//	pinctrl-names = "default", "state_uhs";
-//	pinctrl-0 = <&emmc_pins_default>;
-//	pinctrl-1 = <&emmc_pins_uhs>;
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&emmc_pins_default>;
+	pinctrl-1 = <&emmc_pins_uhs>;
 	status = "okay";
 	bus-width = <8>;
-	max-frequency = <50000000>;
+	max-frequency = <200000000>;
 	cap-mmc-highspeed;
+	cap-mmc-hw-reset;
 	mmc-hs200-1_8v;
-//	vmmc-supply = <&reg_3p3v>;
-//	vqmmc-supply = <&reg_1p8v>;
-//	assigned-clocks = <&topckgen CLK_TOP_MSDC30_0_SEL>;
-//	assigned-clock-parents = <&topckgen CLK_TOP_UNIV48M>;
+	vmmc-supply = <&reg_3p3v>;
+	vqmmc-supply = <&reg_1p8v>;
+	assigned-clocks = <&topckgen CLK_TOP_MSDC30_0_SEL>;
+	assigned-clock-parents = <&topckgen CLK_TOP_UNIV48M>;
 	non-removable;
 };
 
 &mmc1 {
-//	pinctrl-names = "default", "state_uhs";
-//	pinctrl-0 = <&sd0_pins_default>;
-//	pinctrl-1 = <&sd0_pins_uhs>;
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&sd0_pins_default>;
+	pinctrl-1 = <&sd0_pins_uhs>;
 	status = "okay";
 	bus-width = <4>;
 	max-frequency = <50000000>;
 	cap-sd-highspeed;
 	r_smpl = <1>;
-//	cd-gpios = <&pio 81 GPIO_ACTIVE_LOW>;
-//	vmmc-supply = <&reg_3p3v>;
-//	vqmmc-supply = <&reg_3p3v>;
-//	assigned-clocks = <&topckgen CLK_TOP_MSDC30_1_SEL>;
-//	assigned-clock-parents = <&topckgen CLK_TOP_UNIV48M>;
+	cd-gpios = <&pio 81 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&reg_3p3v>;
+	vqmmc-supply = <&reg_3p3v>;
+	assigned-clocks = <&topckgen CLK_TOP_MSDC30_1_SEL>;
+	assigned-clock-parents = <&topckgen CLK_TOP_UNIV48M>;
 };
 
 &nandc {
-	pinctrl-names = "default";
-	pinctrl-0 = <&parallel_nand_pins>;
 	status = "disabled";
 };
 
@@ -543,14 +537,71 @@
 	status = "okay";
 };
 
+&snfi {
+	pinctrl-names = "default";
+	pinctrl-0 = <&serial_nand_pins>;
+	status = "okay";
+
+	spi_nand@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "spi-nand";
+		spi-max-frequency = <104000000>;
+		reg = <0>;
+
+		partitions {
+                        compatible = "fixed-partitions";
+                        #address-cells = <1>;
+                        #size-cells = <1>;
+
+                        partition@0 {
+                                label = "Preloader";
+                                reg = <0x00000 0x0080000>;
+                                read-only;
+                        };
+
+                        partition@80000 {
+                                label = "ATF";
+                                reg = <0x80000 0x0040000>;
+                        };
+
+                        partition@c0000 {
+                                label = "Bootloader";
+                                reg = <0xc0000 0x0080000>;
+                        };
+
+                        partition@140000 {
+                                label = "Config";
+                                reg = <0x140000 0x0080000>;
+                        };
+
+                        partition@1c0000 {
+                                label = "Factory";
+                                reg = <0x1c0000 0x0040000>;
+                        };
+
+                        partition@200000 {
+                                label = "Kernel";
+                                reg = <0x200000 0x2000000>;
+                        };
+
+                        partition@2200000 {
+                                label = "User_data";
+                                reg = <0x2200000 0x4000000>;
+                        };
+                };
+	};
+};
+
 &sata {
-	status = "disable";
+	status = "okay";
 };
 
 &sata_phy {
-	status = "disable";
+	status = "okay";
 };
 
+/*
 &spi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spic0_pins>;
@@ -561,7 +612,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&spic1_pins>;
 	status = "okay";
-/*
         slb9670@0 {
 		compatible = "infineon,slb9670";
 		reg = <0>;
@@ -570,7 +620,6 @@
                 spi-max-frequency = <500000>;
 		status = "okay";
         };
-*/
 
 	st33htpm0: st33htpm@0{
 		compatible = "st,st33htpm-spi";
@@ -581,6 +630,7 @@
 		status = "okay";
 	};
 };
+*/
 
 &ssusb {
 	vusb33-supply = <&reg_3p3v>;

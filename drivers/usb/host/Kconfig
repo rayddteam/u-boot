@@ -30,6 +30,13 @@ config USB_XHCI_DWC3_OF_SIMPLE
 	  Support USB2/3 functionality in simple SoC integrations with
 	  USB controller based on the DesignWare USB3 IP Core.
 
+config USB_XHCI_MTK
+	bool "Mediatek USB 3.0 support"
+	default y
+	select DM_REGULATOR
+	help
+	  Choose this option to add support for USB 3.0 driver on Mediatek SoCs.
+
 config USB_XHCI_MVEBU
 	bool "MVEBU USB 3.0 support"
 	default y

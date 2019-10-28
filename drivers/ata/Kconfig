@@ -138,4 +138,13 @@ config AHCI_MVEBU
 	  onboard AHCI SATA.
 
 	  If unsure, say N.
+
+config AHCI_MTK
+	bool "Mediatek AHCI SATA support"
+	depends on AHCI
+	select SCSI_AHCI
+	select DM_SCSI
+	help
+	  This option enables support for the Mediatek SoC's AHCI.
+
 endmenu

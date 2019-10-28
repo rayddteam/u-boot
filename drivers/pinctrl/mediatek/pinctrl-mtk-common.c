@@ -47,15 +47,16 @@ static const char *mtk_pinctrl_dummy_name = "_dummy";
 static void mtk_w32(struct udevice *dev, u32 reg, u32 val)
 {
 	struct mtk_pinctrl_priv *priv = dev_get_priv(dev);
-
 	__raw_writel(val, priv->base + reg);
 }
 
 static u32 mtk_r32(struct udevice *dev, u32 reg)
 {
 	struct mtk_pinctrl_priv *priv = dev_get_priv(dev);
+	u32 v;
+	v = __raw_readl(priv->base + reg);
 
-	return __raw_readl(priv->base + reg);
+	return v;
 }
 
 static inline int get_count_order(unsigned int count)
@@ -475,7 +476,8 @@ static int mtk_gpio_direction_output(struct udevice *dev,
 static int mtk_gpio_request(struct udevice *dev, unsigned int off,
 			    const char *label)
 {
-	return mtk_hw_set_value(dev->parent, off, PINCTRL_PIN_REG_MODE, 0);
+	return mtk_hw_set_value(dev->parent, off, PINCTRL_PIN_REG_MODE,
+	    MTK_PINCTRL_GPIO_MODE);
 }
 
 static int mtk_gpio_probe(struct udevice *dev)
