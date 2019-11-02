@@ -667,24 +667,22 @@
 		};
 	};
 
-	mmc1: mmc@11240000 { //BPI
-		compatible = "mediatek,mt7622-mmc",
-		"mediatek,mt7623-mmc";
-		reg = <0 0x11240000 0 0x1000>;
-		interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&pericfg CLK_PERI_MSDC30_1_PD>,
-			 <&topckgen CLK_TOP_AXI_SEL>;
-		clock-names = "source", "hclk";
-		status = "disabled";
-	};
-
 	mmc0: mmc@11230000 {
-		compatible = "mediatek,mt7622-mmc",
-		"mediatek,mt7623-mmc";
+		compatible = "mediatek,mt7622-mmc";
 		reg = <0 0x11230000 0 0x1000>;
 		interrupts = <GIC_SPI 79 IRQ_TYPE_LEVEL_LOW>;
 		clocks = <&pericfg CLK_PERI_MSDC30_0_PD>,
 			 <&topckgen CLK_TOP_MSDC50_0_SEL>;
+		clock-names = "source", "hclk";
+		status = "disabled";
+	};
+
+	mmc1: mmc@11240000 {
+		compatible = "mediatek,mt7622-mmc";
+		reg = <0 0x11240000 0 0x1000>;
+		interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_LOW>;
+		clocks = <&pericfg CLK_PERI_MSDC30_1_PD>,
+			 <&topckgen CLK_TOP_AXI_SEL>;
 		clock-names = "source", "hclk";
 		status = "disabled";
 	};
@@ -755,81 +753,6 @@
 		#clock-cells = <1>;
 		#reset-cells = <1>;
 	};
-/*
-	pcie: pcie@1a140000 {
-		compatible = "mediatek,mt7622-pcie";
-		device_type = "pci";
-		reg = <0 0x1a140000 0 0x1000>,
-		      <0 0x1a143000 0 0x1000>,
-		      <0 0x1a145000 0 0x1000>;
-		reg-names = "subsys", "port0", "port1";
-		#address-cells = <3>;
-		#size-cells = <2>;
-		interrupts = <GIC_SPI 228 IRQ_TYPE_LEVEL_LOW>,
-			     <GIC_SPI 229 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&pciesys CLK_PCIE_P0_MAC_EN>,
-			 <&pciesys CLK_PCIE_P1_MAC_EN>,
-			 <&pciesys CLK_PCIE_P0_AHB_EN>,
-			 <&pciesys CLK_PCIE_P0_AHB_EN>,
-			 <&pciesys CLK_PCIE_P0_AUX_EN>,
-			 <&pciesys CLK_PCIE_P1_AUX_EN>,
-			 <&pciesys CLK_PCIE_P0_AXI_EN>,
-			 <&pciesys CLK_PCIE_P1_AXI_EN>,
-			 <&pciesys CLK_PCIE_P0_OBFF_EN>,
-			 <&pciesys CLK_PCIE_P1_OBFF_EN>,
-			 <&pciesys CLK_PCIE_P0_PIPE_EN>,
-			 <&pciesys CLK_PCIE_P1_PIPE_EN>;
-		clock-names = "sys_ck0", "sys_ck1", "ahb_ck0", "ahb_ck1",
-			      "aux_ck0", "aux_ck1", "axi_ck0", "axi_ck1",
-			      "obff_ck0", "obff_ck1", "pipe_ck0", "pipe_ck1";
-		power-domains = <&scpsys MT7622_POWER_DOMAIN_HIF0>;
-		bus-range = <0x00 0xff>;
-		ranges = <0x82000000 0 0x20000000 0x0 0x20000000 0 0x10000000>;
-		status = "disabled";
-
-		pcie0: pcie@0,0 {
-			reg = <0x0000 0 0 0 0>;
-			#address-cells = <3>;
-			#size-cells = <2>;
-			#interrupt-cells = <1>;
-			ranges;
-			status = "disabled";
-
-			num-lanes = <1>;
-			interrupt-map-mask = <0 0 0 7>;
-			interrupt-map = <0 0 0 1 &pcie_intc0 0>,
-					<0 0 0 2 &pcie_intc0 1>,
-					<0 0 0 3 &pcie_intc0 2>,
-					<0 0 0 4 &pcie_intc0 3>;
-			pcie_intc0: interrupt-controller {
-				interrupt-controller;
-				#address-cells = <0>;
-				#interrupt-cells = <1>;
-			};
-		};
-
-		pcie1: pcie@1,0 {
-			reg = <0x0800 0 0 0 0>;
-			#address-cells = <3>;
-			#size-cells = <2>;
-			#interrupt-cells = <1>;
-			ranges;
-			status = "disabled";
-
-			num-lanes = <1>;
-			interrupt-map-mask = <0 0 0 7>;
-			interrupt-map = <0 0 0 1 &pcie_intc1 0>,
-					<0 0 0 2 &pcie_intc1 1>,
-					<0 0 0 3 &pcie_intc1 2>,
-					<0 0 0 4 &pcie_intc1 3>;
-			pcie_intc1: interrupt-controller {
-				interrupt-controller;
-				#address-cells = <0>;
-				#interrupt-cells = <1>;
-			};
-		};
-	};
-*/
 
 	pcie: pcie@1a140000 {
 		compatible = "mediatek,mt7622-pcie";
@@ -857,8 +780,6 @@
 		clock-names = "sys_ck0", "sys_ck1", "ahb_ck0", "ahb_ck1",
 			      "aux_ck0", "aux_ck1", "axi_ck0", "axi_ck1",
 			      "obff_ck0", "obff_ck1", "pipe_ck0", "pipe_ck1";
-		//phys = <&pcie0_phy PHY_TYPE_PCIE>, <&pcie1_phy PHY_TYPE_PCIE>;
-		//phy-names = "pcie-phy0", "pcie-phy1";
 		power-domains = <&scpsys MT7622_POWER_DOMAIN_HIF0>;
 		bus-range = <0x00 0xff>;
 		ranges = <0x82000000 0 0x20000000  0x0 0x20000000  0 0x10000000>;
@@ -901,41 +822,6 @@
 			};
 		};
 	};
-/*
-	pcie0_phy: pcie-phy@1a149000 {
-		compatible = "mediatek,generic-tphy-v1";
-		reg = <0 0x1a149000 0 0x0700>;
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		status = "disabled";
-
-		pcie0_port: pcie-phy@1a149900 {
-			reg = <0 0x1a149900 0 0x0700>;
-			clocks = <&clk25m>;
-			clock-names = "ref";
-			#phy-cells = <1>;
-			status = "okay";
-		};
-	};
-
-	pcie1_phy: pcie-phy@1a14a000 {
-		compatible = "mediatek,generic-tphy-v1";
-		reg = <0 0x1a14a000 0 0x0700>;
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		status = "disabled";
-
-		pcie1_port: pcie-phy@1a14a900 {
-			reg = <0 0x1a14a900 0 0x0700>;
-			clocks = <&clk25m>;
-			clock-names = "ref";
-			#phy-cells = <1>;
-			status = "okay";
-		};
-	};
-*/
 	sata: sata@1a200000 {
 		compatible = "mediatek,mt7622-ahci",
 			     "mediatek,mtk-ahci";
@@ -948,8 +834,6 @@
 			 <&pciesys CLK_SATA_RBC_EN>,
 			 <&pciesys CLK_SATA_PM_EN>;
 		clock-names = "ahb", "axi", "asic", "rbc", "pm";
-		phys = <&sata_port PHY_TYPE_SATA>;
-		phy-names = "sata-phy";
 		ports-implemented = <0x1>;
 		power-domains = <&scpsys MT7622_POWER_DOMAIN_HIF0>;
 		resets = <&pciesys MT7622_SATA_AXI_BUS_RST>,
@@ -958,21 +842,6 @@
 		reset-names = "axi", "sw", "reg";
 		mediatek,phy-mode = <&pciesys>;
 		status = "disabled";
-	};
-
-	sata_phy: sata-phy@1a243000 {
-		compatible = "mediatek,generic-tphy-v1";
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-		status = "disabled";
-
-		sata_port: sata-phy@1a243000 {
-			reg = <0 0x1a243000 0 0x0100>;
-			clocks = <&topckgen CLK_TOP_ETH_500M>;
-			clock-names = "ref";
-			#phy-cells = <1>;
-		};
 	};
 
 	ethsys: syscon@1b000000 {

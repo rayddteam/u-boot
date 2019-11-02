@@ -103,8 +103,6 @@
 		.shift = _shift,					\
 	}
 
-static DEFINE_SPINLOCK(mt7622_clk_lock);
-
 static const int infra_mux1_parents[] = {
 	CLK_XTAL,
 	CLK_APMIXED_ARMPLL,
@@ -714,6 +712,32 @@ static int mt7622_ethsys_probe(struct udevice *dev)
 	return mtk_common_clk_gate_init(dev, &mt7622_clk_tree, eth_clks);
 }
 
+static int mt7622_infracfg_bind(struct udevice *dev)
+{
+	int ret = 0;
+
+#if CONFIG_IS_ENABLED(RESET_MEDIATEK)
+	ret = mediatek_reset_bind(dev, 0x30, 1);
+	if (ret)
+		debug("Warning: failed to bind reset controller\n");
+#endif
+
+	return ret;
+}
+
+static int mt7622_pericfg_bind(struct udevice *dev)
+{
+	int ret = 0;
+
+#if CONFIG_IS_ENABLED(RESET_MEDIATEK)
+	ret = mediatek_reset_bind(dev, 0x00, 2);
+	if (ret)
+		debug("Warning: failed to bind reset controller\n");
+#endif
+
+	return ret;
+}
+
 static int mt7622_ethsys_hifsys_bind(struct udevice *dev)
 {
 	int ret = 0;
@@ -787,6 +811,7 @@ U_BOOT_DRIVER(mtk_clk_infracfg) = {
 	.id = UCLASS_CLK,
 	.of_match = mt7622_infracfg_compat,
 	.probe = mt7622_infracfg_probe,
+	.bind = mt7622_infracfg_bind,
 	.priv_auto_alloc_size = sizeof(struct mtk_cg_priv),
 	.ops = &mtk_clk_gate_ops,
 	.flags = DM_FLAG_PRE_RELOC,
@@ -797,6 +822,7 @@ U_BOOT_DRIVER(mtk_clk_pericfg) = {
 	.id = UCLASS_CLK,
 	.of_match = mt7622_pericfg_compat,
 	.probe = mt7622_pericfg_probe,
+	.bind = mt7622_pericfg_bind,
 	.priv_auto_alloc_size = sizeof(struct mtk_cg_priv),
 	.ops = &mtk_clk_gate_ops,
 	.flags = DM_FLAG_PRE_RELOC,
