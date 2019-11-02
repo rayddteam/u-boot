@@ -250,9 +250,12 @@ dtb-$(CONFIG_ARCH_ZYNQMP) += \
 	avnet-ultra96-rev1.dtb			\
 	avnet-ultrazedev-cc-v1.0-ultrazedev-som-v1.0.dtb	\
 	zynqmp-a2197-revA.dtb			\
-	zynqmp-a2197-g-revA.dtb			\
-	zynqmp-a2197-m-revA.dtb			\
-	zynqmp-a2197-p-revA.dtb			\
+	zynqmp-e-a2197-00-revA.dtb		\
+	zynqmp-g-a2197-00-revA.dtb		\
+	zynqmp-m-a2197-01-revA.dtb		\
+	zynqmp-m-a2197-02-revA.dtb		\
+	zynqmp-m-a2197-03-revA.dtb		\
+	zynqmp-p-a2197-00-revA.dtb		\
 	zynqmp-mini.dtb				\
 	zynqmp-mini-emmc0.dtb			\
 	zynqmp-mini-emmc1.dtb			\
@@ -268,6 +271,7 @@ dtb-$(CONFIG_ARCH_ZYNQMP) += \
 	zynqmp-zcu111-revA.dtb			\
 	zynqmp-zcu1275-revA.dtb			\
 	zynqmp-zcu1275-revB.dtb			\
+	zynqmp-zcu216-revA.dtb			\
 	zynqmp-zc1232-revA.dtb			\
 	zynqmp-zc1254-revA.dtb			\
 	zynqmp-zc1751-xm015-dc1.dtb		\
@@ -536,6 +540,7 @@ dtb-$(CONFIG_MACH_SUN50I) += \
 	sun50i-a64-nanopi-a64.dtb \
 	sun50i-a64-oceanic-5205-5inmfd.dtb \
 	sun50i-a64-olinuxino.dtb \
+	sun50i-a64-olinuxino-emmc.dtb \
 	sun50i-a64-orangepi-win.dtb \
 	sun50i-a64-pine64-lts.dtb \
 	sun50i-a64-pine64-plus.dtb \
@@ -833,4 +838,4 @@ PHONY += dtbs
 dtbs: $(addprefix $(obj)/, $(dtb-y))
 	@:
 
-clean-files := *.dtb *_HS
+clean-files := *.dtb *.dtbo *_HS
