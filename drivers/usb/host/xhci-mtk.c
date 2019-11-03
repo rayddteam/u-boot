@@ -13,7 +13,7 @@
 #include <power/regulator.h>
 #include <asm/gpio.h>
 
-#include "xhci.h"
+#include <usb/xhci.h>
 
 #define	MTK_XHCI_IP_PW_CTR0	0x00
 #define 	CTRL0_IP_SW_RST		(1 << 0)
