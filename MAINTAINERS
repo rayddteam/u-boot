@@ -94,6 +94,13 @@ L:	uboot-snps-arc@synopsys.com
 F:	doc/device-tree-bindings/gpio/snps,creg-gpio.txt
 F:	drivers/gpio/hsdk-creg-gpio.c
 
+ARC HSDK RESET
+M:	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+S:	Maintained
+L:	uboot-snps-arc@synopsys.com
+F:	include/dt-bindings/reset/snps,hsdk-reset.h
+F:	drivers/reset/reset-hsdk.c
+
 ARC SYNOPSYS DW MMC EXTENSIONS
 M:	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
 S:	Maintained
@@ -474,6 +481,13 @@ S:	Maintained
 T:	git https://gitlab.denx.de/u-boot/custodians/u-boot-microblaze.git
 F:	arch/arm/mach-zynqmp-r5/
 
+ARM PHYTIUM
+M:	liuhao <liuhao@phytium.com.cn>
+M:	shuyiqi <shuyiqi@phytium.com.cn>
+S:	Maintained
+F:	drivers/pci/pcie_phytium.c
+F:	arch/arm/dts/phytium-durian.dts
+
 BINMAN
 M:	Simon Glass <sjg@chromium.org>
 S:	Maintained
@@ -693,6 +707,11 @@ M:	Ramon Fried <rfried.dev@gmail.com>
 S:	Maintained
 F:	drivers/pci_endpoint/
 F:  include/pci_ep.h
+
+PCI MPC85xx
+M:	Heiko Schocher <hs@denx.de>
+S:	Maintained
+F:	drivers/pci/pci_mpc85xx.c
 
 POWER
 M:	Jaehoon Chung <jh80.chung@samsung.com>

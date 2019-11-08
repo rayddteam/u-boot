@@ -732,6 +732,7 @@ libs-$(CONFIG_SYS_FSL_DDR) += drivers/ddr/fsl/
 libs-$(CONFIG_SYS_FSL_MMDC) += drivers/ddr/fsl/
 libs-$(CONFIG_$(SPL_)ALTERA_SDRAM) += drivers/ddr/altera/
 libs-y += drivers/serial/
+libs-y += drivers/usb/cdns3/
 libs-y += drivers/usb/dwc3/
 libs-y += drivers/usb/common/
 libs-y += drivers/usb/emul/
@@ -804,6 +805,12 @@ ifneq ($(CONFIG_SPL_SIZE_LIMIT),0)
 SPL_SIZE_CHECK = @$(call size_check,$@,$$(tools/spl_size_limit))
 else
 SPL_SIZE_CHECK =
+endif
+
+ifneq ($(CONFIG_TPL_SIZE_LIMIT),0)
+TPL_SIZE_CHECK = @$(call size_check,$@,$(CONFIG_TPL_SIZE_LIMIT))
+else
+TPL_SIZE_CHECK =
 endif
 
 # Statically apply RELA-style relocations (currently arm64 only)
@@ -1119,7 +1126,15 @@ u-boot.bin: u-boot-nodtb.bin FORCE
 	$(call if_changed,copy)
 endif
 
-%.imx: %.bin
+# we call Makefile in arch/arm/mach-imx which
+# has targets which are dependent on targets defined
+# here. make could not resolve them and we must ensure
+# that they are finished before calling imx targets
+ifeq ($(CONFIG_MULTI_DTB_FIT),y)
+IMX_DEPS = u-boot-fit-dtb.bin
+endif
+
+%.imx: $(IMX_DEPS) %.bin
 	$(Q)$(MAKE) $(build)=arch/arm/mach-imx $@
 	$(BOARD_SIZE_CHECK)
 
@@ -1806,6 +1821,7 @@ spl/boot.bin: spl/u-boot-spl
 tpl/u-boot-tpl.bin: tools prepare \
 		$(if $(CONFIG_OF_SEPARATE)$(CONFIG_OF_EMBED)$(CONFIG_SPL_OF_PLATDATA),dts/dt.dtb)
 	$(Q)$(MAKE) obj=tpl -f $(srctree)/scripts/Makefile.spl all
+	$(TPL_SIZE_CHECK)
 
 TAG_SUBDIRS := $(patsubst %,$(srctree)/%,$(u-boot-dirs) include)
 
