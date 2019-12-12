@@ -3,7 +3,7 @@
 VERSION = 2020
 PATCHLEVEL = 01
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION = -rc4
 NAME =
 
 # *DOCUMENTATION*
@@ -16,6 +16,25 @@ NAME =
 #   (this increases performance and avoids hard-to-debug behaviour);
 # o Look for make include files relative to root of kernel src
 MAKEFLAGS += -rR --include-dir=$(CURDIR)
+
+# Determine host architecture
+include include/host_arch.h
+MK_ARCH="${shell uname -m}"
+unexport HOST_ARCH
+ifeq ("x86_64", $(MK_ARCH))
+  export HOST_ARCH=$(HOST_ARCH_X86_64)
+else ifneq (,$(findstring $(MK_ARCH), "i386" "i486" "i586" "i686"))
+  export HOST_ARCH=$(HOST_ARCH_X86)
+else ifneq (,$(findstring $(MK_ARCH), "aarch64" "armv8l"))
+  export HOST_ARCH=$(HOST_ARCH_AARCH64)
+else ifeq ("armv7l", $(MK_ARCH))
+  export HOST_ARCH=$(HOST_ARCH_ARM)
+else ifeq ("riscv32", $(MK_ARCH))
+  export HOST_ARCH=$(HOST_ARCH_RISCV32)
+else ifeq ("riscv64", $(MK_ARCH))
+  export HOST_ARCH=$(HOST_ARCH_RISCV64)
+endif
+undefine MK_ARCH
 
 # Avoid funny character set dependencies
 unexport LC_ALL
@@ -712,11 +731,6 @@ libs-y += drivers/
 libs-y += drivers/dma/
 libs-y += drivers/gpio/
 libs-y += drivers/i2c/
-libs-y += drivers/mtd/
-libs-$(CONFIG_CMD_NAND) += drivers/mtd/nand/raw/
-libs-y += drivers/mtd/onenand/
-libs-$(CONFIG_CMD_UBI) += drivers/mtd/ubi/
-libs-y += drivers/mtd/spi/
 libs-y += drivers/net/
 libs-y += drivers/net/phy/
 libs-y += drivers/power/ \
@@ -751,6 +765,7 @@ libs-$(CONFIG_API) += api/
 libs-$(CONFIG_HAS_POST) += post/
 libs-$(CONFIG_UNIT_TEST) += test/ test/dm/
 libs-$(CONFIG_UT_ENV) += test/env/
+libs-$(CONFIG_UT_OPTEE) += test/optee/
 libs-$(CONFIG_UT_OVERLAY) += test/overlay/
 
 libs-y += $(if $(BOARDDIR),board/$(BOARDDIR)/)
@@ -1286,7 +1301,6 @@ MKIMAGEFLAGS_u-boot-ivt.img = -A $(ARCH) -T firmware_ivt -C none -O u-boot \
 	-a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_UBOOT_START) \
 	-n "U-Boot $(UBOOTRELEASE) for $(BOARD) board"
 u-boot-ivt.img: MKIMAGEOUTPUT = u-boot-ivt.img.log
-CLEAN_FILES += u-boot-ivt.img.log u-boot-dtb.imx.log SPL.log u-boot.imx.log
 endif
 
 MKIMAGEFLAGS_u-boot-dtb.img = $(MKIMAGEFLAGS_u-boot.img)
@@ -1386,7 +1400,6 @@ lpc32xx-boot-1.bin: lpc32xx-spl.img FORCE
 lpc32xx-full.bin: lpc32xx-boot-0.bin lpc32xx-boot-1.bin u-boot.img FORCE
 	$(call if_changed,cat)
 
-CLEAN_FILES += lpc32xx-*
 endif
 
 OBJCOPYFLAGS_u-boot-with-tpl.bin = -I binary -O binary \
@@ -1456,6 +1469,17 @@ cmd_socboot = cat	spl/u-boot-spl.sfp spl/u-boot-spl.sfp	\
 			u-boot.img > $@ || rm -f $@
 u-boot-with-spl.sfp: spl/u-boot-spl.sfp u-boot.img FORCE
 	$(call if_changed,socboot)
+
+quiet_cmd_socnandboot = SOCNANDBOOT $@
+cmd_socnandboot =  dd if=/dev/zero of=spl/u-boot-spl.pad bs=64 count=1024 ; \
+		   cat	spl/u-boot-spl.sfp spl/u-boot-spl.pad \
+			spl/u-boot-spl.sfp spl/u-boot-spl.pad \
+			spl/u-boot-spl.sfp spl/u-boot-spl.pad \
+			spl/u-boot-spl.sfp spl/u-boot-spl.pad \
+			u-boot.img > $@ || rm -f $@ spl/u-boot-spl.pad
+u-boot-with-nand-spl.sfp: spl/u-boot-spl.sfp u-boot.img FORCE
+	$(call if_changed,socnandboot)
+
 endif
 
 ifeq ($(CONFIG_MPC85xx)$(CONFIG_OF_SEPARATE),yy)
@@ -1663,7 +1687,7 @@ u-boot.sym: u-boot FORCE
 # make sure no implicit rule kicks in
 $(sort $(u-boot-init) $(u-boot-main)): $(u-boot-dirs) ;
 
-# Handle descending into subdirectories listed in $(vmlinux-dirs)
+# Handle descending into subdirectories listed in $(u-boot-dirs)
 # Preset locale variables to speed up the build process. Limit locale
 # tweaks to this spot to avoid wrong language settings when running
 # make menuconfig etc.
@@ -1865,6 +1889,7 @@ checkarmreloc: u-boot
 	fi
 
 tools/version.h: include/version.h
+	$(Q)mkdir -p $(dir $@)
 	$(call if_changed,copy)
 
 envtools: scripts_basic $(version_h) $(timestamp_h) tools/version.h
@@ -1900,7 +1925,10 @@ CLEAN_DIRS  += $(MODVERDIR) \
 			$(filter-out include, $(shell ls -1 $d 2>/dev/null))))
 
 CLEAN_FILES += include/bmp_logo.h include/bmp_logo_data.h tools/version.h \
-	       boot* u-boot* MLO* SPL System.map fit-dtb.blob*
+	       boot* u-boot* MLO* SPL System.map fit-dtb.blob* \
+	       u-boot-ivt.img.log u-boot-dtb.imx.log SPL.log u-boot.imx.log \
+	       lpc32xx-* bl31.c bl31.elf bl31_*.bin image.map tispl.bin* \
+	       idbloader.img
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated spl tpl \
@@ -1930,12 +1958,12 @@ clean: $(clean-dirs)
 		-o -name '*.ko.*' -o -name '*.su' -o -name '*.pyc' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
 		-o -name '*.lex.c' -o -name '*.tab.[ch]' \
+		-o -name '*.asn1.[ch]' \
 		-o -name '*.symtypes' -o -name 'modules.order' \
 		-o -name modules.builtin -o -name '.tmp_*.o.*' \
 		-o -name 'dsdt.aml' -o -name 'dsdt.asl.tmp' -o -name 'dsdt.c' \
 		-o -name '*.efi' -o -name '*.gcno' -o -name '*.so' \) \
-		-type f -print | xargs rm -f \
-		bl31.c bl31.elf bl31_*.bin image.map tispl.bin*
+		-type f -print | xargs rm -f
 
 # mrproper - Delete all generated files, including .config
 #

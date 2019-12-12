@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <malloc.h>
 #include <mapmem.h>
+#include <u-boot/crc.h>
 #include <watchdog.h>
 #include <linux/stddef.h>
 #include <asm/byteorder.h>
@@ -360,7 +361,7 @@ ulong env_get_hex(const char *varname, ulong default_val)
 
 int eth_env_get_enetaddr(const char *name, uint8_t *enetaddr)
 {
-	eth_parse_enetaddr(env_get(name), enetaddr);
+	string_to_enetaddr(env_get(name), enetaddr);
 	return is_valid_ethaddr(enetaddr);
 }
 
@@ -678,6 +679,23 @@ char *env_get(const char *name)
 		return (char *)(gd->env_buf);
 
 	return NULL;
+}
+
+/*
+ * Like env_get, but prints an error if envvar isn't defined in the
+ * environment.  It always returns what env_get does, so it can be used in
+ * place of env_get without changing error handling otherwise.
+ */
+char *from_env(const char *envvar)
+{
+	char *ret;
+
+	ret = env_get(envvar);
+
+	if (!ret)
+		printf("missing environment variable: %s\n", envvar);
+
+	return ret;
 }
 
 /*

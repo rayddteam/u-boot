@@ -19,8 +19,6 @@
 
 /* ENV */
 #define CONFIG_SYS_FSL_QSPI_BASE	0x40000000
-#define CONFIG_ENV_ADDR			(CONFIG_SYS_FSL_QSPI_BASE + \
-					 CONFIG_ENV_OFFSET)
 /*
  * I2C IO expander
  */
@@ -109,7 +107,7 @@
 	"installer=load mmc 0:2 $load_addr "	\
 		   "/flex_installer_arm64.itb; "	\
 		   "bootm $load_addr#$board\0"	\
-	"qspi_bootcmd=echo Trying load from qspi..;"	\
+	"qspi_bootcmd=pfe stop; echo Trying load from qspi..;"	\
 		"sf probe && sf read $load_addr "	\
 		"$kernel_addr $kernel_size; env exists secureboot "	\
 		"&& sf read $kernelheader_addr_r $kernelheader_addr "	\

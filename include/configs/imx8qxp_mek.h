@@ -161,8 +161,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR         0x80200000
 
 /* Default environment is in SD */
-#define CONFIG_ENV_SIZE			0x1000
-#define CONFIG_ENV_OFFSET		(64 * SZ_64K)
 #define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
 
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
@@ -197,5 +195,10 @@
 /* Networking */
 #define CONFIG_FEC_XCV_TYPE		RGMII
 #define FEC_QUIRK_ENET_MAC
+
+/* Misc configuration */
+#define CONFIG_SYS_CBSIZE	2048
+#define CONFIG_SYS_MAXARGS	64
+#define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
 
 #endif /* __IMX8QXP_MEK_H */

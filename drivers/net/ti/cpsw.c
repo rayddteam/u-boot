@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <cpu_func.h>
 #include <net.h>
 #include <miiphy.h>
 #include <malloc.h>
@@ -1223,6 +1224,9 @@ static int cpsw_eth_ofdata_to_platdata(struct udevice *dev)
 	int ret;
 
 	data = calloc(1, sizeof(struct cpsw_platform_data));
+	if (!data)
+		return -ENOMEM;
+
 	pdata->priv_pdata = data;
 	pdata->iobase = dev_read_addr(dev);
 	data->version = CPSW_CTRL_VERSION_2;

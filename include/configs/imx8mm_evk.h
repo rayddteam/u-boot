@@ -113,10 +113,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 #define CONFIG_ENV_OVERWRITE
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_ENV_OFFSET               (64 * SZ_64K)
-#endif
-#define CONFIG_ENV_SIZE			SZ_4K
 #define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC2 */
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
 
@@ -149,5 +145,13 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #define CONFIG_SYS_I2C_SPEED		100000
+
+#define CONFIG_ETHPRIME                 "FEC"
+
+#define CONFIG_FEC_XCV_TYPE             RGMII
+#define CONFIG_FEC_MXC_PHYADDR          0
+#define FEC_QUIRK_ENET_MAC
+
+#define IMX_FEC_BASE			0x30BE0000
 
 #endif

@@ -67,6 +67,9 @@ dtb-$(CONFIG_KIRKWOOD) += \
 dtb-$(CONFIG_ARCH_OWL) += \
 	bubblegum_96.dtb
 
+dtb-$(CONFIG_ROCKCHIP_PX30) += \
+	px30-evb.dtb
+
 dtb-$(CONFIG_ROCKCHIP_RK3036) += \
 	rk3036-sdk.dtb
 
@@ -87,11 +90,16 @@ dtb-$(CONFIG_ROCKCHIP_RK3288) += \
 	rk3288-popmetal.dtb \
 	rk3288-rock2-square.dtb \
 	rk3288-tinker.dtb \
+	rk3288-tinker-s.dtb \
 	rk3288-veyron-jerry.dtb \
 	rk3288-veyron-mickey.dtb \
 	rk3288-veyron-minnie.dtb \
 	rk3288-veyron-speedy.dtb \
 	rk3288-vyasa.dtb
+
+dtb-$(CONFIG_ROCKCHIP_RK3308) += \
+	rk3308-evb.dtb \
+	rk3308-roc-cc.dtb
 
 dtb-$(CONFIG_ROCKCHIP_RK3328) += \
 	rk3328-evb.dtb \
@@ -111,6 +119,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3399) += \
 	rk3399-khadas-edge.dtb \
 	rk3399-khadas-edge-captain.dtb \
 	rk3399-khadas-edge-v.dtb \
+	rk3399-leez-p710.dtb \
 	rk3399-nanopc-t4.dtb \
 	rk3399-nanopi-m4.dtb \
 	rk3399-nanopi-neo4.dtb \
@@ -660,6 +669,7 @@ dtb-$(CONFIG_ARCH_IMX8) += \
 
 dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mm-evk.dtb \
+	imx8mn-ddr4-evk.dtb \
 	imx8mq-evk.dtb
 
 dtb-$(CONFIG_RCAR_GEN2) += \
@@ -825,7 +835,8 @@ dtb-$(CONFIG_SOC_K3_J721E) += k3-j721e-common-proc-board.dtb \
 dtb-$(CONFIG_ARCH_MEDIATEK) += \
 	mt7623n-bananapi-bpi-r2.dtb \
 	mt7629-rfb.dtb \
-	mt8516-pumpkin.dtb
+	mt8516-pumpkin.dtb \
+	mt8518-ap1-emmc.dtb
 
 dtb-$(CONFIG_TARGET_GE_BX50V3) += imx6q-bx50v3.dtb
 dtb-$(CONFIG_TARGET_MX53PPD) += imx53-ppd.dtb

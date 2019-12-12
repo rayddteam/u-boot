@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright 2017 NXP
+ * Copyright 2017-2019 NXP
  * Copyright 2014-2015 Freescale Semiconductor, Inc.
  */
 
 #include <common.h>
+#include <cpu_func.h>
 #include <env.h>
 #include <fsl_ddr_sdram.h>
+#include <vsprintf.h>
 #include <asm/io.h>
 #include <linux/errno.h>
 #include <asm/system.h>
@@ -38,6 +40,7 @@
 #include <fsl_validate.h>
 #endif
 #endif
+#include <linux/mii.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -1072,6 +1075,8 @@ static void config_core_prefetch(void)
 
 	if (env_get_f("hwconfig", buffer, sizeof(buffer)) > 0)
 		buf = buffer;
+	else
+		return;
 
 	prefetch_arg = hwconfig_subarg_f("core_prefetch", "disable",
 					 &arglen, buf);
@@ -1221,7 +1226,7 @@ void __efi_runtime reset_cpu(ulong addr)
 #endif
 }
 
-#ifdef CONFIG_EFI_LOADER
+#if defined(CONFIG_EFI_LOADER) && !defined(CONFIG_PSCI_RESET)
 
 void __efi_runtime EFIAPI efi_reset_system(
 		       enum efi_reset_type reset_type,

@@ -96,7 +96,7 @@ config SYS_HZ
 	  set to 1000.
 
 config SPL_USE_TINY_PRINTF
-	bool "Enable tiny printf() version"
+	bool "Enable tiny printf() version in SPL"
 	depends on SPL
 	default y
 	help
@@ -108,7 +108,7 @@ config SPL_USE_TINY_PRINTF
 	  The supported format specifiers are %c, %s, %u/%d and %x.
 
 config TPL_USE_TINY_PRINTF
-	bool "Enable tiny printf() version"
+	bool "Enable tiny printf() version in TPL"
 	depends on TPL
 	default y if SPL_USE_TINY_PRINTF
 	help
@@ -265,6 +265,7 @@ config AES
 	  present.
 
 source lib/rsa/Kconfig
+source lib/crypto/Kconfig
 
 config TPM
 	bool "Trusted Platform Module (TPM) Support"
@@ -566,6 +567,19 @@ config SMBIOS_PRODUCT_NAME
 
 endmenu
 
+config ASN1_COMPILER
+	bool
+
+config ASN1_DECODER
+	bool
+	help
+	  Enable asn1 decoder library.
+
+config OID_REGISTRY
+	bool
+	help
+	  Enable fast lookup object identifier registry.
+
 source lib/efi/Kconfig
 source lib/efi_loader/Kconfig
 source lib/optee/Kconfig
@@ -573,5 +587,8 @@ source lib/optee/Kconfig
 config TEST_FDTDEC
 	bool "enable fdtdec test"
 	depends on OF_LIBFDT
+
+config LIB_DATE
+	bool
 
 endmenu

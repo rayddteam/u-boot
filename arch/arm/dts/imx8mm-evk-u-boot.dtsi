@@ -11,6 +11,9 @@
 &clk {
 	u-boot,dm-spl;
 	u-boot,dm-pre-reloc;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
 };
 
 &osc_24m {
@@ -109,4 +112,8 @@
 
 &pinctrl_pmic {
 	u-boot,dm-spl;
+};
+
+&fec1 {
+	phy-reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
 };
