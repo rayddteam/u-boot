@@ -52,8 +52,6 @@
 #define CONFIG_SYS_NAND_ENABLE_PIN	AT91_PIN_PD4
 #define CONFIG_SYS_NAND_READY_PIN	AT91_PIN_PD5
 #define CONFIG_SYS_NAND_ONFI_DETECTION
-
-#define CONFIG_MTD_DEVICE
 #endif
 
 /* PMECC & PMERRLOC */
@@ -73,7 +71,6 @@
 
 #elif defined(CONFIG_NAND_BOOT)
 /* bootstrap + u-boot + env + linux in nandflash */
-#define CONFIG_ENV_OFFSET_REDUND	0x100000
 #define CONFIG_BOOTCOMMAND	"nand read " \
 				"0x22000000 0x200000 0x600000; " \
 				"nand read 0x21000000 0x180000 0x20000; " \

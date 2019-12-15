@@ -155,9 +155,7 @@ ifeq ($(DEPFILE_EXISTS),0)
 endif
 
 flash.bin: spl/u-boot-spl-ddr.bin u-boot.itb FORCE
-ifeq ($(DEPFILE_EXISTS),0)
 	$(call if_changed,mkimage)
-endif
 endif
 
 ifeq ($(CONFIG_ARCH_IMX8), y)
@@ -228,3 +226,5 @@ obj-$(CONFIG_MX7) += mx7/
 obj-$(CONFIG_ARCH_MX7ULP) += mx7ulp/
 obj-$(CONFIG_IMX8M) += imx8m/
 obj-$(CONFIG_ARCH_IMX8) += imx8/
+
+obj-$(CONFIG_SPL_BOOTROM_SUPPORT) += spl_imx_romapi.o

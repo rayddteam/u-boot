@@ -8,6 +8,7 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
 #include <asm-generic/io.h>
 #include <dm.h>
 #include <dm/device-internal.h>
@@ -338,7 +339,7 @@ static int dwc3_glue_reset_init(struct udevice *dev,
 	int ret;
 
 	ret = reset_get_bulk(dev, &glue->resets);
-	if (ret == -ENOTSUPP)
+	if (ret == -ENOTSUPP || ret == -ENOENT)
 		return 0;
 	else if (ret)
 		return ret;
@@ -358,7 +359,7 @@ static int dwc3_glue_clk_init(struct udevice *dev,
 	int ret;
 
 	ret = clk_get_bulk(dev, &glue->clks);
-	if (ret == -ENOSYS)
+	if (ret == -ENOSYS || ret == -ENOENT)
 		return 0;
 	if (ret)
 		return ret;

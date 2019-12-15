@@ -223,7 +223,7 @@ class Series(dict):
         col = terminal.Color()
         # Look for commit tags (of the form 'xxx:' at the start of the subject)
         fname = '/tmp/patman.%d' % os.getpid()
-        fd = open(fname, 'w')
+        fd = open(fname, 'w', encoding='utf-8')
         all_ccs = []
         for commit in self.commits:
             cc = []
@@ -251,7 +251,7 @@ class Series(dict):
             cover_cc = [tools.FromUnicode(m) for m in cover_cc]
             cc_list = '\0'.join([tools.ToUnicode(x)
                                  for x in sorted(set(cover_cc + all_ccs))])
-            print(cover_fname, cc_list.encode('utf-8'), file=fd)
+            print(cover_fname, cc_list, file=fd)
 
         fd.close()
         return fname

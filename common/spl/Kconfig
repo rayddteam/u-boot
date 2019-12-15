@@ -268,7 +268,7 @@ config SPL_BANNER_PRINT
 	default y
 	help
 	  If this option is enabled, SPL will print the banner with version
-	  info. Disabling this option could be useful to reduce TPL boot time
+	  info. Disabling this option could be useful to reduce SPL boot time
 	  (e.g. approx. 6 ms faster, when output on i.MX6 with 115200 baud).
 
 config TPL_BANNER_PRINT
@@ -276,8 +276,8 @@ config TPL_BANNER_PRINT
 	depends on TPL
 	default y
 	help
-	  If this option is enabled, SPL will not print the banner with version
-	  info. Disabling this option could be useful to reduce SPL boot time
+	  If this option is enabled, TPL will print the banner with version
+	  info. Disabling this option could be useful to reduce TPL boot time
 	  (e.g. approx. 6 ms faster, when output on i.MX6 with 115200 baud).
 
 config SPL_EARLY_BSS
@@ -439,6 +439,13 @@ config SPL_FIT_IMAGE_TINY
 	  ensure this information is available to the next image
 	  invoked).
 
+config SPL_CACHE_SUPPORT
+	bool "Support CACHE drivers"
+	help
+	  Enable CACHE drivers in SPL. These drivers can keep data so that
+	  future requests for that data can be served faster. Enable this option
+	  to build the drivers in drivers/cache as part of an SPL build.
+
 config SPL_CPU_SUPPORT
 	bool "Support CPU drivers"
 	help
@@ -484,6 +491,12 @@ config SPL_DMA_SUPPORT
 	  can be used to handle memory-to-peripheral data transfer without
 	  the CPU moving the data. Enable this option to build the drivers
 	  in drivers/dma as part of an SPL build.
+
+config SPL_DM_GPIO
+	bool "Support Driver Model GPIO drivers"
+	depends on SPL_GPIO_SUPPORT && DM_GPIO
+	help
+	  Enable support for Driver Model based GPIO drivers in SPL.
 
 config SPL_DRIVERS_MISC_SUPPORT
 	bool "Support misc drivers"
@@ -1014,8 +1027,19 @@ config SPL_SERIAL_SUPPORT
 	  unless there are space reasons not to. Even then, consider
 	  enabling SPL_USE_TINY_PRINTF which is a small printf() version.
 
+config SPL_SPI_SUPPORT
+	bool "Support SPI drivers"
+	help
+	  Enable support for using SPI in SPL. This is used for connecting
+	  to SPI flash for loading U-Boot. See SPL_SPI_FLASH_SUPPORT for
+	  more details on that. The SPI driver provides the transport for
+	  data between the SPI flash and the CPU. This option can be used to
+	  enable SPI drivers that are needed for other purposes also, such
+	  as a SPI PMIC.
+
 config SPL_SPI_FLASH_SUPPORT
 	bool "Support SPI flash drivers"
+	depends on SPL_SPI_SUPPORT
 	help
 	  Enable support for using SPI flash in SPL, and loading U-Boot from
 	  SPI flash. SPI flash (Serial Peripheral Bus flash) is named after
@@ -1059,16 +1083,6 @@ config SYS_SPI_U_BOOT_OFFS
 	help
 	 Address within SPI-Flash from where the u-boot payload is fetched
 	 from.
-
-config SPL_SPI_SUPPORT
-	bool "Support SPI drivers"
-	help
-	  Enable support for using SPI in SPL. This is used for connecting
-	  to SPI flash for loading U-Boot. See SPL_SPI_FLASH_SUPPORT for
-	  more details on that. The SPI driver provides the transport for
-	  data between the SPI flash and the CPU. This option can be used to
-	  enable SPI drivers that are needed for other purposes also, such
-	  as a SPI PMIC.
 
 config SPL_THERMAL
 	bool "Driver support for thermal devices"
@@ -1231,6 +1245,22 @@ config TPL
 	  If you want to build TPL as well as the normal image and SPL, say Y.
 
 if TPL
+
+config TPL_SIZE_LIMIT
+	hex "Maximum size of TPL image"
+	depends on TPL
+	default 0
+	help
+	  Specifies the maximum length of the U-Boot TPL image.
+	  If this value is zero, it is ignored.
+
+config TPL_FRAMEWORK
+	bool "Support TPL based upon the common SPL framework"
+	default y if SPL_FRAMEWORK
+	help
+	  Enable the SPL framework under common/spl/ for TPL builds.
+	  This framework supports MMC, NAND and YMODEM and other methods
+	  loading of U-Boot's SPL stage. If unsure, say Y.
 
 config TPL_HANDOFF
 	bool "Pass hand-off information from TPL to SPL and U-Boot proper"

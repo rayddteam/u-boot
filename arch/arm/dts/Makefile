@@ -67,6 +67,9 @@ dtb-$(CONFIG_KIRKWOOD) += \
 dtb-$(CONFIG_ARCH_OWL) += \
 	bubblegum_96.dtb
 
+dtb-$(CONFIG_ROCKCHIP_PX30) += \
+	px30-evb.dtb
+
 dtb-$(CONFIG_ROCKCHIP_RK3036) += \
 	rk3036-sdk.dtb
 
@@ -87,11 +90,16 @@ dtb-$(CONFIG_ROCKCHIP_RK3288) += \
 	rk3288-popmetal.dtb \
 	rk3288-rock2-square.dtb \
 	rk3288-tinker.dtb \
+	rk3288-tinker-s.dtb \
 	rk3288-veyron-jerry.dtb \
 	rk3288-veyron-mickey.dtb \
 	rk3288-veyron-minnie.dtb \
 	rk3288-veyron-speedy.dtb \
 	rk3288-vyasa.dtb
+
+dtb-$(CONFIG_ROCKCHIP_RK3308) += \
+	rk3308-evb.dtb \
+	rk3308-roc-cc.dtb
 
 dtb-$(CONFIG_ROCKCHIP_RK3328) += \
 	rk3328-evb.dtb \
@@ -111,6 +119,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3399) += \
 	rk3399-khadas-edge.dtb \
 	rk3399-khadas-edge-captain.dtb \
 	rk3399-khadas-edge-v.dtb \
+	rk3399-leez-p710.dtb \
 	rk3399-nanopc-t4.dtb \
 	rk3399-nanopi-m4.dtb \
 	rk3399-nanopi-neo4.dtb \
@@ -565,6 +574,7 @@ dtb-$(CONFIG_MX53) += imx53-cx9020.dtb \
 
 ifneq ($(CONFIG_MX6DL)$(CONFIG_MX6QDL)$(CONFIG_MX6S),)
 dtb-y += \
+	imx6dl-brppt2.dtb \
 	imx6dl-dhcom-pdk2.dtb \
 	imx6dl-icore.dtb \
 	imx6dl-icore-mipi.dtb \
@@ -589,6 +599,7 @@ dtb-y += \
 	imx6q-icore-rqs.dtb \
 	imx6q-kp.dtb \
 	imx6q-logicpd.dtb \
+	imx6q-mccmon6.dtb\
 	imx6q-nitrogen6x.dtb \
 	imx6q-novena.dtb \
 	imx6q-pico.dtb \
@@ -651,11 +662,15 @@ dtb-$(CONFIG_ARCH_MX7ULP) += imx7ulp-evk.dtb
 dtb-$(CONFIG_ARCH_IMX8) += \
 	fsl-imx8qm-apalis.dtb \
 	fsl-imx8qm-mek.dtb \
+	imx8qm-rom7720-a1.dtb \
+	fsl-imx8qxp-ai_ml.dtb \
 	fsl-imx8qxp-colibri.dtb \
 	fsl-imx8qxp-mek.dtb
 
-dtb-$(CONFIG_ARCH_IMX8M) += fsl-imx8mq-evk.dtb \
-	imx8mm-evk.dtb
+dtb-$(CONFIG_ARCH_IMX8M) += \
+	imx8mm-evk.dtb \
+	imx8mn-ddr4-evk.dtb \
+	imx8mq-evk.dtb
 
 dtb-$(CONFIG_RCAR_GEN2) += \
 	r8a7790-lager-u-boot.dtb \
@@ -821,7 +836,8 @@ dtb-$(CONFIG_ARCH_MEDIATEK) += \
 	mt7622-bananapi-bpi-r64.dtb \
 	mt7623n-bananapi-bpi-r2.dtb \
 	mt7629-rfb.dtb \
-	mt8516-pumpkin.dtb
+	mt8516-pumpkin.dtb \
+	mt8518-ap1-emmc.dtb
 
 dtb-$(CONFIG_TARGET_GE_BX50V3) += imx6q-bx50v3.dtb
 dtb-$(CONFIG_TARGET_MX53PPD) += imx53-ppd.dtb
@@ -829,6 +845,8 @@ dtb-$(CONFIG_TARGET_MX53PPD) += imx53-ppd.dtb
 dtb-$(CONFIG_TARGET_VEXPRESS_CA5X2) += vexpress-v2p-ca5s.dtb
 dtb-$(CONFIG_TARGET_VEXPRESS_CA9X4) += vexpress-v2p-ca9.dtb
 dtb-$(CONFIG_TARGET_VEXPRESS_CA15_TC2) += vexpress-v2p-ca15_a7.dtb
+
+dtb-$(CONFIG_TARGET_DURIAN) += phytium-durian.dtb
 
 targets += $(dtb-y)
 

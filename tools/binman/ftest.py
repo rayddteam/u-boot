@@ -73,6 +73,8 @@ FILES_DATA            = (b"sorry I'm late\nOh, don't bother apologising, I'm " +
 COMPRESS_DATA         = b'compress xxxxxxxxxxxxxxxxxxxxxx data'
 REFCODE_DATA          = b'refcode'
 FSP_M_DATA            = b'fsp_m'
+FSP_S_DATA            = b'fsp_s'
+FSP_T_DATA            = b'fsp_t'
 
 # The expected size for the device tree in some tests
 EXTRACT_DTB_SIZE = 0x3c9
@@ -149,6 +151,8 @@ class TestFunctional(unittest.TestCase):
         TestFunctional._MakeInputFile('bmpblk.bin', BMPBLK_DATA)
         TestFunctional._MakeInputFile('refcode.bin', REFCODE_DATA)
         TestFunctional._MakeInputFile('fsp_m.bin', FSP_M_DATA)
+        TestFunctional._MakeInputFile('fsp_s.bin', FSP_S_DATA)
+        TestFunctional._MakeInputFile('fsp_t.bin', FSP_T_DATA)
 
         cls._elf_testdir = os.path.join(cls._indir, 'elftest')
         elf_test.BuildElfTestFiles(cls._elf_testdir)
@@ -170,7 +174,7 @@ class TestFunctional(unittest.TestCase):
         cls.have_lz4 = True
         try:
             tools.Run('lz4', '--no-frame-crc', '-c',
-                      os.path.join(cls._indir, 'u-boot.bin'))
+                      os.path.join(cls._indir, 'u-boot.bin'), binary=True)
         except:
             cls.have_lz4 = False
 
@@ -1238,7 +1242,7 @@ class TestFunctional(unittest.TestCase):
 
         self._SetupSplElf('u_boot_binman_syms')
         data = self._DoReadFile('053_symbols.dts')
-        sym_values = struct.pack('<LQLL', 0, 28, 24, 4)
+        sym_values = struct.pack('<LQLL', 0x00, 0x1c, 0x28, 0x04)
         expected = (sym_values + U_BOOT_SPL_DATA[20:] +
                     tools.GetBytes(0xff, 1) + U_BOOT_DATA + sym_values +
                     U_BOOT_SPL_DATA[20:])
@@ -2109,7 +2113,7 @@ class TestFunctional(unittest.TestCase):
         data = self.data = self._DoReadFileRealDtb('115_fdtmap.dts')
         fdtmap_data = data[len(U_BOOT_DATA):]
         magic = fdtmap_data[:8]
-        self.assertEqual('_FDTMAP_', magic)
+        self.assertEqual(b'_FDTMAP_', magic)
         self.assertEqual(tools.GetBytes(0, 8), fdtmap_data[8:16])
 
         fdt_data = fdtmap_data[16:]
@@ -2152,7 +2156,7 @@ class TestFunctional(unittest.TestCase):
         dtb = fdt.Fdt.FromData(fdt_data)
         fdt_size = dtb.GetFdtObj().totalsize()
         hdr_data = data[-8:]
-        self.assertEqual('BinM', hdr_data[:4])
+        self.assertEqual(b'BinM', hdr_data[:4])
         offset = struct.unpack('<I', hdr_data[4:])[0] & 0xffffffff
         self.assertEqual(fdtmap_pos - 0x400, offset - (1 << 32))
 
@@ -2161,7 +2165,7 @@ class TestFunctional(unittest.TestCase):
         data = self.data = self._DoReadFileRealDtb('117_fdtmap_hdr_start.dts')
         fdtmap_pos = 0x100 + len(U_BOOT_DATA)
         hdr_data = data[:8]
-        self.assertEqual('BinM', hdr_data[:4])
+        self.assertEqual(b'BinM', hdr_data[:4])
         offset = struct.unpack('<I', hdr_data[4:])[0]
         self.assertEqual(fdtmap_pos, offset)
 
@@ -2170,7 +2174,7 @@ class TestFunctional(unittest.TestCase):
         data = self.data = self._DoReadFileRealDtb('118_fdtmap_hdr_pos.dts')
         fdtmap_pos = 0x100 + len(U_BOOT_DATA)
         hdr_data = data[0x80:0x88]
-        self.assertEqual('BinM', hdr_data[:4])
+        self.assertEqual(b'BinM', hdr_data[:4])
         offset = struct.unpack('<I', hdr_data[4:])[0]
         self.assertEqual(fdtmap_pos, offset)
 
@@ -2431,9 +2435,9 @@ class TestFunctional(unittest.TestCase):
 '  section               100   %x  section          100' % section_size,
 '    cbfs                100   400  cbfs               0',
 '      u-boot            138     4  u-boot            38',
-'      u-boot-dtb        180   10f  u-boot-dtb        80          3c9',
+'      u-boot-dtb        180   105  u-boot-dtb        80          3c9',
 '    u-boot-dtb          500   %x  u-boot-dtb       400          3c9' % fdt_size,
-'  fdtmap                %x   3b4  fdtmap           %x' %
+'  fdtmap                %x   3bd  fdtmap           %x' %
         (fdtmap_offset, fdtmap_offset),
 '  image-header          bf8     8  image-header     bf8',
             ]
@@ -2518,7 +2522,7 @@ class TestFunctional(unittest.TestCase):
         data = self._RunExtractCmd('section')
         cbfs_data = data[:0x400]
         cbfs = cbfs_util.CbfsReader(cbfs_data)
-        self.assertEqual(['u-boot', 'u-boot-dtb', ''], cbfs.files.keys())
+        self.assertEqual(['u-boot', 'u-boot-dtb', ''], list(cbfs.files.keys()))
         dtb_data = data[0x400:]
         dtb = self._decompress(dtb_data)
         self.assertEqual(EXTRACT_DTB_SIZE, len(dtb))
@@ -3300,12 +3304,9 @@ class TestFunctional(unittest.TestCase):
         self.assertIn("'intel-fit-ptr' section must have an 'intel-fit' sibling",
                       str(e.exception))
 
-    def testSymbolsTplSection(self):
-        """Test binman can assign symbols embedded in U-Boot TPL in a section"""
-        self._SetupSplElf('u_boot_binman_syms')
-        self._SetupTplElf('u_boot_binman_syms')
-        data = self._DoReadFile('149_symbols_tpl.dts')
-        sym_values = struct.pack('<LQLL', 4, 0x1c, 0x34, 4)
+    def _CheckSymbolsTplSection(self, dts, expected_vals):
+        data = self._DoReadFile(dts)
+        sym_values = struct.pack('<LQLL', *expected_vals)
         upto1 = 4 + len(U_BOOT_SPL_DATA)
         expected1 = tools.GetBytes(0xff, 4) + sym_values + U_BOOT_SPL_DATA[20:]
         self.assertEqual(expected1, data[:upto1])
@@ -3319,7 +3320,22 @@ class TestFunctional(unittest.TestCase):
         self.assertEqual(expected3, data[upto2:upto3])
 
         expected4 = sym_values + U_BOOT_TPL_DATA[20:]
-        self.assertEqual(expected4, data[upto3:])
+        self.assertEqual(expected4, data[upto3:upto3 + len(U_BOOT_TPL_DATA)])
+
+    def testSymbolsTplSection(self):
+        """Test binman can assign symbols embedded in U-Boot TPL in a section"""
+        self._SetupSplElf('u_boot_binman_syms')
+        self._SetupTplElf('u_boot_binman_syms')
+        self._CheckSymbolsTplSection('149_symbols_tpl.dts',
+                                     [0x04, 0x1c, 0x10 + 0x34, 0x04])
+
+    def testSymbolsTplSectionX86(self):
+        """Test binman can assign symbols in a section with end-at-4gb"""
+        self._SetupSplElf('u_boot_binman_syms_x86')
+        self._SetupTplElf('u_boot_binman_syms_x86')
+        self._CheckSymbolsTplSection('155_symbols_tpl_x86.dts',
+                                     [0xffffff04, 0xffffff1c, 0xffffff34,
+                                      0x04])
 
     def testPackX86RomIfwiSectiom(self):
         """Test that a section can be placed in an IFWI region"""
@@ -3332,6 +3348,15 @@ class TestFunctional(unittest.TestCase):
         data = self._DoReadFile('152_intel_fsp_m.dts')
         self.assertEqual(FSP_M_DATA, data[:len(FSP_M_DATA)])
 
+    def testPackFspS(self):
+        """Test that an image with a FSP silicon-init binary can be created"""
+        data = self._DoReadFile('153_intel_fsp_s.dts')
+        self.assertEqual(FSP_S_DATA, data[:len(FSP_S_DATA)])
+
+    def testPackFspT(self):
+        """Test that an image with a FSP temp-ram-init binary can be created"""
+        data = self._DoReadFile('154_intel_fsp_t.dts')
+        self.assertEqual(FSP_T_DATA, data[:len(FSP_T_DATA)])
 
 
 if __name__ == "__main__":
