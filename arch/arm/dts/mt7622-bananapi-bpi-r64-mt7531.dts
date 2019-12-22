@@ -202,7 +202,6 @@
 	bus-width = <8>;
 	max-frequency = <200000000>;
 	cap-mmc-highspeed;
-	mmc-hs200-1_8v;
 	vmmc-supply = <&reg_3p3v>;
 	vqmmc-supply = <&reg_1p8v>;
 	assigned-clocks = <&topckgen CLK_TOP_MSDC30_0_SEL>;
@@ -217,7 +216,7 @@
 	status = "okay";
 	bus-width = <4>;
 	max-frequency = <50000000>;
-	cap-sd-highspeed;
+	cap-mmc-highspeed;
 	r_smpl = <1>;
 	cd-gpios = <&pio 81 GPIO_ACTIVE_LOW>;
 	vmmc-supply = <&reg_3p3v>;
