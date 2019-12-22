@@ -9,8 +9,8 @@
 #include "mt7622-u-boot.dtsi"
 
 / {
-	#address-cells = <1>;
-	#size-cells = <1>;
+	#address-cells = <2>;
+	#size-cells = <2>;
 	model = "mt7622-rfb";
 	compatible = "mediatek,mt7622", "mediatek,mt7622-rfb";
 	chosen {
@@ -24,7 +24,7 @@
 
 	memory@40000000 {
 		device_type = "memory";
-		reg = <0x40000000 0x10000000>;
+		reg = <0 0x40000000 0 0x10000000>;
 	};
 
 	reg_1p8v: regulator-1p8v {
@@ -47,7 +47,8 @@
 };
 
 
-&pinctrl {
+//&pinctrl {
+&pio {
 	snfi_pins: snfi-pins {
 		mux {
 			function = "flash";
