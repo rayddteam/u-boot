@@ -491,6 +491,63 @@ static const struct mtk_gate sgmii_cgs[] = {
 	GATE_SGMII(CLK_SGMII_CDR_FB, CLK_TOP_SSUSB_CDR_FB, 5),
 };
 
+#define GATE_PCIE(_id, _parent, _shift) {		\
+		.id = _id,				\
+		.parent = _parent,			\
+		.regs = &pcie_cg_regs,			\
+		.shift = _shift,			\
+		.flags = CLK_GATE_NO_SETCLR_INV | CLK_PARENT_TOPCKGEN, \
+	}
+
+#define GATE_SSUSB(_id, _parent, _shift) {		\
+		.id = _id,				\
+		.parent = _parent,			\
+		.regs = &ssusb_cg_regs,			\
+		.shift = _shift,			\
+		.flags = CLK_GATE_NO_SETCLR_INV | CLK_PARENT_TOPCKGEN, \
+	}
+
+static const struct mtk_gate_regs pcie_cg_regs = {
+	.set_ofs = 0x30,
+	.clr_ofs = 0x30,
+	.sta_ofs = 0x30,
+};
+
+static const struct mtk_gate_regs ssusb_cg_regs = {
+	.set_ofs = 0x30,
+	.clr_ofs = 0x30,
+	.sta_ofs = 0x30,
+};
+
+static const struct mtk_gate ssusb_clks[] = {
+	GATE_SSUSB(CLK_SSUSB_U2_PHY_1P_EN, CLK_TOP_TO_U2_PHY_1P, 0),
+	GATE_SSUSB(CLK_SSUSB_U2_PHY_EN, CLK_TOP_TO_U2_PHY, 1),
+	GATE_SSUSB(CLK_SSUSB_REF_EN, CLK_TOP_TO_USB3_REF, 5),
+	GATE_SSUSB(CLK_SSUSB_SYS_EN, CLK_TOP_TO_USB3_SYS, 6),
+	GATE_SSUSB(CLK_SSUSB_MCU_EN, CLK_TOP_AXI_SEL, 7),
+	GATE_SSUSB(CLK_SSUSB_DMA_EN, CLK_TOP_HIF_SEL, 8),
+};
+
+static const struct mtk_gate pcie_clks[] = {
+	GATE_PCIE(CLK_PCIE_P1_AUX_EN, CLK_TOP_P1_1MHZ, 12),
+	GATE_PCIE(CLK_PCIE_P1_OBFF_EN, CLK_TOP_4MHZ, 13),
+	GATE_PCIE(CLK_PCIE_P1_AHB_EN, CLK_TOP_AXI_SEL, 14),
+	GATE_PCIE(CLK_PCIE_P1_AXI_EN, CLK_TOP_HIF_SEL, 15),
+	GATE_PCIE(CLK_PCIE_P1_MAC_EN, CLK_TOP_PCIE1_MAC_EN, 16),
+	GATE_PCIE(CLK_PCIE_P1_PIPE_EN, CLK_TOP_PCIE1_PIPE_EN, 17),
+	GATE_PCIE(CLK_PCIE_P0_AUX_EN, CLK_TOP_P0_1MHZ, 18),
+	GATE_PCIE(CLK_PCIE_P0_OBFF_EN, CLK_TOP_4MHZ, 19),
+	GATE_PCIE(CLK_PCIE_P0_AHB_EN, CLK_TOP_AXI_SEL, 20),
+	GATE_PCIE(CLK_PCIE_P0_AXI_EN, CLK_TOP_HIF_SEL, 21),
+	GATE_PCIE(CLK_PCIE_P0_MAC_EN, CLK_TOP_PCIE0_MAC_EN, 22),
+	GATE_PCIE(CLK_PCIE_P0_PIPE_EN, CLK_TOP_PCIE0_PIPE_EN, 23),
+	GATE_PCIE(CLK_SATA_AHB_EN, CLK_TOP_AXI_SEL, 26),
+	GATE_PCIE(CLK_SATA_AXI_EN, CLK_TOP_HIF_SEL, 27),
+	GATE_PCIE(CLK_SATA_ASIC_EN, CLK_TOP_SATA_ASIC, 28),
+	GATE_PCIE(CLK_SATA_RBC_EN, CLK_TOP_SATA_RBC, 29),
+	GATE_PCIE(CLK_SATA_PM_EN, CLK_TOP_UNIVPLL2_D4, 30),
+};
+
 static const struct mtk_clk_tree mt7622_clk_tree = {
 	.xtal_rate = 25 * MHZ,
 	.xtal2_rate = 25 * MHZ,
@@ -575,6 +632,29 @@ static int mt7622_sgmiisys_probe(struct udevice *dev)
 	return mtk_common_clk_gate_init(dev, &mt7622_clk_tree, sgmii_cgs);
 }
 
+static int mt7622_ssusbsys_probe(struct udevice *dev)
+{
+	return mtk_common_clk_gate_init(dev, &mt7622_clk_tree, ssusb_clks);
+}
+
+static int mt7622_pciesys_probe(struct udevice *dev)
+{
+	return mtk_common_clk_gate_init(dev, &mt7622_clk_tree, pcie_clks);
+}
+
+static int mt7622_ethsys_hifsys_bind(struct udevice *dev)
+{
+	int ret = 0;
+
+#if CONFIG_IS_ENABLED(RESET_MEDIATEK)
+	ret = mediatek_reset_bind(dev, ETHSYS_HIFSYS_RST_CTRL_OFS, 1);
+	if (ret)
+		debug("Warning: failed to bind reset controller\n");
+#endif
+
+	return ret;
+}
+
 static const struct udevice_id mt7622_apmixed_compat[] = {
 	{ .compatible = "mediatek,mt7622-apmixedsys" },
 	{ }
@@ -608,6 +688,38 @@ static const struct udevice_id mt7622_sgmiisys_compat[] = {
 static const struct udevice_id mt7622_mcucfg_compat[] = {
 	{ .compatible = "mediatek,mt7622-mcucfg" },
 	{ }
+};
+
+static const struct udevice_id mt7622_ssusbsys_compat[] = {
+	{ .compatible = "mediatek,mt7622-ssusbsys" },
+	{ }
+};
+
+static const struct udevice_id mt7622_pciesys_compat[] = {
+	{ .compatible = "mediatek,mt7622-pciesys" },
+	{ }
+};
+
+U_BOOT_DRIVER(mtk_clk_ssusbsys) = {
+	.name = "mt7622-clock-ssusbsys",
+	.id = UCLASS_CLK,
+	.of_match = mt7622_ssusbsys_compat,
+	.probe = mt7622_ssusbsys_probe,
+	.bind = mt7622_ethsys_hifsys_bind,
+	.priv_auto_alloc_size = sizeof(struct mtk_cg_priv),
+	.ops = &mtk_clk_gate_ops,
+	.flags = DM_FLAG_PRE_RELOC,
+};
+
+U_BOOT_DRIVER(mtk_clk_pciesys) = {
+	.name = "mt7622-clock-pciesys",
+	.id = UCLASS_CLK,
+	.of_match = mt7622_pciesys_compat,
+	.probe = mt7622_pciesys_probe,
+	.bind = mt7622_ethsys_hifsys_bind,
+	.priv_auto_alloc_size = sizeof(struct mtk_cg_priv),
+	.ops = &mtk_clk_gate_ops,
+	.flags = DM_FLAG_PRE_RELOC,
 };
 
 U_BOOT_DRIVER(mtk_mcucfg) = {
@@ -676,3 +788,240 @@ U_BOOT_DRIVER(mtk_clk_sgmiisys) = {
 	.priv_auto_alloc_size = sizeof(struct mtk_cg_priv),
 	.ops = &mtk_clk_gate_ops,
 };
+
+
+#define	WR4(_sc, _r, _v)						\
+    writel((_v), (_sc)->base + (_r))
+#define	RD4(_sc, _r)							\
+    readl((_sc)->base + (_r))
+#define	SET4(_sc, _r, _m)						\
+    WR4((_sc), (_r), RD4((_sc), (_r)) | (_m))
+#define	CLR4(_sc, _r, _m)						\
+    WR4((_sc), (_r), RD4((_sc), (_r)) & ~(_m))
+#define MD4(_sc, reg, clr, set)	WR4((_sc), (reg), 			\
+    ((RD4((_sc), (reg)) & ~(clr)) | (set)))
+
+const char *abist_clk_sel_names[] = {
+	[1] = "AD_MEMPLL2_CKOUT0_PRE_ISO",
+	[2] = "AD_MAIN_DIV2_CK",
+	[3] = "AD_MAIN_DIV3_CK",
+	[4] = "AD_MAIN_DIV5_CK",
+	[5] = "AD_MAIN_DIV7_CK",
+	[6] = "AD_UNIV_DIV2_CK",
+	[7] = "AD_UNIV_DIV3_CK",
+	[8] = "AD_UNIV_DIV5_CK",
+	[9] = "AD_UNIV_DIV7_CK",
+	[10] = "AD_UNIV_DIV80_CK",
+	[11] = "AD_UNIV_48M_CK",
+	[12] = "AD_SGMIIPLL_CK",
+	[13] = "XTAL",
+	[14] = "AD_AUD1PLL_CK",
+	[15] = "AD_AUD2PLL_CK",
+	[16] = "RTC",
+	[17] = "AD_ARMPLL_TOP_TST_CK",
+	[18] = "AD_USB_48M_CK",
+	[19] = "abist_clk01 - AD_MAINPLL_CORE_CK",
+	[20] = "abist_clk02 - AD_TRGPLL_CK",
+	[21] = "abist_clk03 - AD_MEM_25M_CK",
+	[22] = "abist_clk04 - AD_PLLGP_TST_CK",
+	[23] = "abist_clk05 - AD_ETH1PLL_CK",
+	[24] = "abist_clk06 - AD_ETH2PLL_CK",
+	[25] = "abist_clk07 - AD_UNIVPLL_CK",
+	[26] = "abist_clk08 - AD_MEM2MIPI_26M_CK",
+	[27] = "abist_clk09 - AD_MEMPLL_MONCLK",
+	[28] = "abist_clk10 - AD_MEMPLL2_MONCLK",
+	[29] = "abist_clk11 - AD_MEMPLL3_MONCLK",
+	[30] = "abist_clk12 - AD_MEMPLL4_MONCLK",
+	[31] = "abist_clk13 - AD_MEMPLL_REFCLK_BUF",
+	[32] = "abist_clk14 - AD_MEMPLL_FBCLK_BUF",
+	[33] = "abist_clk15 - AD_MEMPLL2_REFCLK_BUF",
+	[34] = "abist_clk16 - AD_MEMPLL2_FBCLK_BUF",
+	[35] = "abist_clk17 - AD_MEMPLL3_REFCLK_BUF",
+	[36] = "abist_clk18 - AD_MEMPLL3_FBCLK_BUF",
+	[37] = "abist_clk19 - AD_MEMPLL4_REFCLK_BUF",
+	[38] = "abist_clk20 - AD_MEMPLL4_FBCLK_BUF",
+	[39] = "abist_clk21 - AD_MEMPLL_TSTDIV2_CK",
+};
+const char *ckgen_clk_sel_names[] = {
+	[1] = "hf_fmem_ck",
+	[2] = "hf_fddrphycfg_ck",
+	[3] = "hf_feth_ck",
+	[4] = "f_fpwm_ck",
+	[5] = "hf_f10m_ck",
+	[6] = "hf_fspinfi_infra_bclk_ck",
+	[7] = "hf_fflash_ck",
+	[8] = "f_fuart_ck",
+	[9] = "hf_fspi0_ck",
+	[10] = "hf_fspi1_ck",
+	[11] = "hf_fmsdc50_0_ck",
+	[12] = "hf_fmsdc30_0_ck",
+	[13] = "hf_fmsdc30_1_ck",
+	[14] = "f_fa1sys_hp_ck",
+	[15] = "f_fa2sys_hp_ck",
+	[16] = "hf_fintdir_ck",
+	[17] = "hf_faud_intbus_ck",
+	[18] = "hf_fpmicspi_ck",
+	[19] = "hf_fscp_ck",
+	[20] = "hf_fatb_ck",
+	[21] = "hf_fhif_ck",
+	[22] = "hf_faudio_ck",
+	[23] = "hf_fusb20_ck",
+	[24] = "f_faud1_ck",
+	[25] = "f_faud2_ck",
+	[26] = "hf_firrx_ck",
+	[27] = "hf_firtx_ck",
+	[28] = "hf_fasm_l_ck",
+	[29] = "hf_fasm_m_ck",
+	[30] = "hf_fasm_h_ck",
+	[31] = "f_faud26m_ck",
+	[32] = "hf_fpmicspi_ck_scan",
+	[33] = "hf_fsgmii_ref_ck",
+	[34] = "f_fsata_ck",
+	[35] = "f_f75k_ck",
+	[36] = "f_fmsdc_ext_ck",
+	[37] = "hf_fddrphycfg_ck_scan",
+	[38] = "f_frtc_fddrphyperi_ck",
+	[39] = "f_fddrphyperi_ck_scan",
+	[40] = "f_fckrtc_ck_scan",
+	[41] = "f_frtc_ck",
+	[42] = "f_fxtal_ck",
+	[43] = "f_fckbus_ck_scan",
+	[44] = "f_fxtal_ck_cg",
+	[45] = "hd_qaxidcm_ck",
+	[46] = "hf_fspi0_pad_ck",
+	[47] = "hf_fspi1_pad_ck",
+	[48] = "f_fefuse_ck",
+	[49] = "f_fapmixed_ck",
+	[50] = "f_fclkmux_ck",
+	[51] = "f_frtc_apmixed_ck",
+	[52] = "f_fsata_ref_ck",
+	[53] = "f_fpcie_ref_ck",
+	[54] = "f_fssusb_ref_ck",
+	[55] = "f_funivpll3_d16_ck",
+	[56] = "f_fauxadc_ck",
+	[57] = "hf_fap2wbmcu_ck",
+	[58] = "hf_fap2wbhif_ck",
+	[59] = "hf_fsata_mcu_ck",
+	[60] = "hf_fpcie0_mcu_ck",
+	[61] = "hf_fpcie1_mcu_ck",
+	[62] = "hf_fssusb_mcu_ck",
+	[63] = "f_fpcie_2ln_ck",
+};
+
+#define	CLK_CFG_8       0x0100
+#define	CLK_CFG_9       0x0104
+#define	CLK_MISC_CFG_0  0x0210
+#define	CLK_MISC_CFG_1  0x0214
+#define	CLK26CALI_0     0x0220
+#define		FMETER_EN		(1 << 7)
+#define		FMETER_CKGEN_CLK_EXC	(1 << 5)
+#define		FMETER_CKGEN_TRI_CAL	(1 << 4)
+#define		FMETER_ABIST_CLK_EXC	(1 << 2)
+#define		FMETER_PLL_TEST		(1 << 1)
+#define		FMETER_ABIST_TRI_CAL	(1 << 0)
+
+#define	CLK26CALI_1     0x0224
+#define	CLK26CALI_2     0x0228
+
+#define RG_FRMTR_WINDOW     1023
+struct mtk_topckgen_softc {
+	uint32_t base;
+};
+
+static uint8_t
+mtk_topckgen_wait_fmeter_done(struct mtk_topckgen_softc *sc, uint32_t tri_bit)
+{
+	static int max_wait_count;
+	int wait_count = (max_wait_count > 0) ? (max_wait_count * 2 + 2) : 100;
+	int i;
+
+	/* wait fmeter */
+	for (i = 0; i < wait_count && (RD4(sc, CLK26CALI_0) & tri_bit); i++)
+		mdelay(1);
+
+	if (!(RD4(sc, CLK26CALI_0) & tri_bit)) {
+		max_wait_count = max(max_wait_count, i);
+		return 1;
+	}
+
+	return 0;
+}
+
+static uint32_t
+mtk_topckgen_fmeter_freq_ckgen(struct mtk_topckgen_softc *sc, int k1, int clk)
+{
+	uint32_t cnt, freq = 0;
+
+	/* setup fmeter */
+	SET4(sc, CLK26CALI_0, FMETER_EN);
+	CLR4(sc, CLK26CALI_0, FMETER_CKGEN_CLK_EXC);
+	WR4(sc, CLK26CALI_2, 1023 << 16);
+
+	MD4(sc, CLK_MISC_CFG_1, 0xff000000, (k1 & 0xff) << 24);
+	MD4(sc, CLK_CFG_9, 0x3f0000, (clk << 16));
+
+	SET4(sc, CLK26CALI_0, FMETER_CKGEN_TRI_CAL);
+
+	if (mtk_topckgen_wait_fmeter_done(sc, FMETER_CKGEN_TRI_CAL)) {
+		cnt = RD4(sc, CLK26CALI_2) & 0xFFFF;
+		freq = (cnt * 25000) * (k1 + 1) / 1024;
+	}
+
+	CLR4(sc, CLK26CALI_0, FMETER_EN);
+
+	return freq;
+}
+
+static uint32_t
+mtk_topckgen_fmeter_freq_abist(struct mtk_topckgen_softc *sc, int k1, int clk)
+{
+	uint32_t cnt, freq = 0;
+
+	/* setup fmeter */
+	SET4(sc, CLK26CALI_0, FMETER_EN);
+	CLR4(sc, CLK26CALI_0, FMETER_ABIST_CLK_EXC);
+	MD4(sc, CLK26CALI_1, 0x3ff0000, 1023 << 16);
+
+	MD4(sc, CLK_MISC_CFG_1, 0xff, (k1 & 0xff));
+	MD4(sc, CLK_CFG_8, 0x3f00, (clk << 8));
+
+	SET4(sc, CLK26CALI_0, FMETER_ABIST_TRI_CAL);
+
+	if (mtk_topckgen_wait_fmeter_done(sc, FMETER_ABIST_TRI_CAL)) {
+		cnt = RD4(sc, CLK26CALI_1) & 0xFFFF;
+		freq = (cnt * 25000) * (k1 + 1) / 1024;
+	}
+
+	CLR4(sc, CLK26CALI_0, FMETER_EN);
+
+	return freq;
+}
+#define	nitems(a)	(sizeof(a) / sizeof(a[0]))
+
+static int dump_clks(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	struct mtk_topckgen_softc sc;
+	uint32_t freq;
+	int i;
+
+	sc.base = 0x10210000;
+
+	for (i = 0; i < nitems(ckgen_clk_sel_names); i ++) {
+		if (ckgen_clk_sel_names[i] == NULL)
+			continue;
+		printf("measure CKGEN clock %s:", ckgen_clk_sel_names[i]);
+		freq = mtk_topckgen_fmeter_freq_ckgen(&sc, 0, i);
+		printf("\t\t%d kHz\n", freq);
+	}
+	for (i = 0; i < nitems(abist_clk_sel_names); i ++) {
+		if (abist_clk_sel_names[i] == NULL)
+			continue;
+		printf("measure ABIST clock %s:", abist_clk_sel_names[i]);
+		freq = mtk_topckgen_fmeter_freq_abist(&sc, 0, i);
+		printf("\t\t%d kHz\n", freq);
+	}
+
+	return (0);
+}
+
+U_BOOT_CMD(dumpclks, 1, 0, dump_clks, "Dump running clocks", "");
